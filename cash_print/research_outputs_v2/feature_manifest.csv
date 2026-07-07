@@ -1,0 +1,136 @@
+initial_raw_feature_count,after_lag_compression_count,final_feature_count,feature,family,lag,kept_after_lag_compression,lag_compression_reason,missing_rate_train,unique_values_train,kept_after_correlation_prune,correlated_with,correlation_threshold
+135,39,24,VPR,VPR,,True,not_lag_feature,0.0,652.0,True,,0.95
+135,39,24,Topping,Topping,,True,not_lag_feature,0.0,652.0,True,,0.95
+135,39,24,Complex,Complex,,True,not_lag_feature,0.0,652.0,False,Bayernoil,0.95
+135,39,24,Bayernoil,Bayernoil,,True,not_lag_feature,0.0,652.0,True,,0.95
+135,39,24,OSN,OSN,,True,not_lag_feature,0.0,58.0,False,70 min,0.95
+135,39,24,pipe,pipe,,True,not_lag_feature,0.0,59.0,False,70 min,0.95
+135,39,24,70 min,70 min,,True,not_lag_feature,0.0,61.0,True,,0.95
+135,39,24,sweet 80,sweet 80,,True,not_lag_feature,0.0,66.0,True,,0.95
+135,39,24,hvn,hvn,,True,not_lag_feature,0.0,87.0,True,,0.95
+135,39,24,HS hvn,HS hvn,,True,not_lag_feature,0.0,77.0,True,,0.95
+135,39,24,lavera,lavera,,True,not_lag_feature,0.0,56.0,True,,0.95
+135,39,24,CASH_DIFF,CASH_DIFF,,True,not_lag_feature,0.0,196.0,True,,0.95
+135,39,24,CASH_DIFF_lag_1,CASH_DIFF,1.0,True,kept_lag,0.0,196.0,True,,0.95
+135,39,24,CASH_DIFF_lag_2,CASH_DIFF,2.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_3,CASH_DIFF,3.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_4,CASH_DIFF,4.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_5,CASH_DIFF,5.0,True,kept_lag,0.0,197.0,True,,0.95
+135,39,24,CASH_DIFF_lag_6,CASH_DIFF,6.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_7,CASH_DIFF,7.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_8,CASH_DIFF,8.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_9,CASH_DIFF,9.0,False,dropped_lag,,,,,
+135,39,24,CASH_DIFF_lag_10,CASH_DIFF,10.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_1,VPR,1.0,True,kept_lag,0.0,652.0,False,VPR,0.95
+135,39,24,VPR_lag_2,VPR,2.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_3,VPR,3.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_4,VPR,4.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_5,VPR,5.0,True,kept_lag,0.0,652.0,True,,0.95
+135,39,24,VPR_lag_6,VPR,6.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_7,VPR,7.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_8,VPR,8.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_9,VPR,9.0,False,dropped_lag,,,,,
+135,39,24,VPR_lag_10,VPR,10.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_1,Topping,1.0,True,kept_lag,0.0,652.0,False,Topping,0.95
+135,39,24,Topping_lag_2,Topping,2.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_3,Topping,3.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_4,Topping,4.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_5,Topping,5.0,True,kept_lag,0.0,652.0,True,,0.95
+135,39,24,Topping_lag_6,Topping,6.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_7,Topping,7.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_8,Topping,8.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_9,Topping,9.0,False,dropped_lag,,,,,
+135,39,24,Topping_lag_10,Topping,10.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_1,Complex,1.0,True,kept_lag,0.0,652.0,True,,0.95
+135,39,24,Complex_lag_2,Complex,2.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_3,Complex,3.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_4,Complex,4.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_5,Complex,5.0,True,kept_lag,0.0,652.0,False,Bayernoil_lag_5,0.95
+135,39,24,Complex_lag_6,Complex,6.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_7,Complex,7.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_8,Complex,8.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_9,Complex,9.0,False,dropped_lag,,,,,
+135,39,24,Complex_lag_10,Complex,10.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_1,Bayernoil,1.0,True,kept_lag,0.0,652.0,False,Bayernoil,0.95
+135,39,24,Bayernoil_lag_2,Bayernoil,2.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_3,Bayernoil,3.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_4,Bayernoil,4.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_5,Bayernoil,5.0,True,kept_lag,0.0,652.0,True,,0.95
+135,39,24,Bayernoil_lag_6,Bayernoil,6.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_7,Bayernoil,7.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_8,Bayernoil,8.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_9,Bayernoil,9.0,False,dropped_lag,,,,,
+135,39,24,Bayernoil_lag_10,Bayernoil,10.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_1,OSN,1.0,True,kept_lag,0.0,58.0,True,,0.95
+135,39,24,OSN_lag_2,OSN,2.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_3,OSN,3.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_4,OSN,4.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_5,OSN,5.0,True,kept_lag,0.0,58.0,False,70 min_lag_5,0.95
+135,39,24,OSN_lag_6,OSN,6.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_7,OSN,7.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_8,OSN,8.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_9,OSN,9.0,False,dropped_lag,,,,,
+135,39,24,OSN_lag_10,OSN,10.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_1,pipe,1.0,True,kept_lag,0.0,60.0,False,70 min,0.95
+135,39,24,pipe_lag_2,pipe,2.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_3,pipe,3.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_4,pipe,4.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_5,pipe,5.0,True,kept_lag,0.0,60.0,False,70 min_lag_5,0.95
+135,39,24,pipe_lag_6,pipe,6.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_7,pipe,7.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_8,pipe,8.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_9,pipe,9.0,False,dropped_lag,,,,,
+135,39,24,pipe_lag_10,pipe,10.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_1,70 min,1.0,True,kept_lag,0.0,62.0,False,70 min,0.95
+135,39,24,70 min_lag_2,70 min,2.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_3,70 min,3.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_4,70 min,4.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_5,70 min,5.0,True,kept_lag,0.0,62.0,True,,0.95
+135,39,24,70 min_lag_6,70 min,6.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_7,70 min,7.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_8,70 min,8.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_9,70 min,9.0,False,dropped_lag,,,,,
+135,39,24,70 min_lag_10,70 min,10.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_1,sweet 80,1.0,True,kept_lag,0.0,66.0,False,sweet 80,0.95
+135,39,24,sweet 80_lag_2,sweet 80,2.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_3,sweet 80,3.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_4,sweet 80,4.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_5,sweet 80,5.0,True,kept_lag,0.0,66.0,True,,0.95
+135,39,24,sweet 80_lag_6,sweet 80,6.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_7,sweet 80,7.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_8,sweet 80,8.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_9,sweet 80,9.0,False,dropped_lag,,,,,
+135,39,24,sweet 80_lag_10,sweet 80,10.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_1,hvn,1.0,True,kept_lag,0.0,87.0,False,hvn,0.95
+135,39,24,hvn_lag_2,hvn,2.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_3,hvn,3.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_4,hvn,4.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_5,hvn,5.0,True,kept_lag,0.0,86.0,True,,0.95
+135,39,24,hvn_lag_6,hvn,6.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_7,hvn,7.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_8,hvn,8.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_9,hvn,9.0,False,dropped_lag,,,,,
+135,39,24,hvn_lag_10,hvn,10.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_1,HS hvn,1.0,True,kept_lag,0.0,77.0,False,HS hvn,0.95
+135,39,24,HS hvn_lag_2,HS hvn,2.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_3,HS hvn,3.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_4,HS hvn,4.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_5,HS hvn,5.0,True,kept_lag,0.0,77.0,True,,0.95
+135,39,24,HS hvn_lag_6,HS hvn,6.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_7,HS hvn,7.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_8,HS hvn,8.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_9,HS hvn,9.0,False,dropped_lag,,,,,
+135,39,24,HS hvn_lag_10,HS hvn,10.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_1,lavera,1.0,True,kept_lag,0.0,57.0,False,lavera,0.95
+135,39,24,lavera_lag_2,lavera,2.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_3,lavera,3.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_4,lavera,4.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_5,lavera,5.0,True,kept_lag,0.0,57.0,True,,0.95
+135,39,24,lavera_lag_6,lavera,6.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_7,lavera,7.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_8,lavera,8.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_9,lavera,9.0,False,dropped_lag,,,,,
+135,39,24,lavera_lag_10,lavera,10.0,False,dropped_lag,,,,,
+135,39,24,EW,EW,,True,not_lag_feature,0.05521472392638037,235.0,True,,0.95
+135,39,24,BRENT,BRENT,,True,not_lag_feature,0.02607361963190184,567.0,True,,0.95
+135,39,24,GASOLINE,GASOLINE,,True,not_lag_feature,0.02607361963190184,527.0,True,,0.95
