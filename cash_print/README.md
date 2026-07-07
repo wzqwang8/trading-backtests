@@ -54,16 +54,18 @@ python3 cash_print/build_model_dataset.py \
 
 Both scripts default to `--start-date 2022-01-07` and `--end-date` equal to today's date.
 
-`pull_forward_curve_history.py` pulls one forward-curve snapshot per business
-day from the `0#NAF-NWE:` chain and writes it to the `curve` sheet, one row
-per as-of date and one column per forward delivery month. It is incremental:
-re-running it only fetches business days missing from the existing output
-file (use `--force-refresh` to refetch everything), and it checkpoints to
-disk every `--checkpoint-every` rows so an interrupted run does not lose
-progress. `build_model_dataset.py` then fits QR-orthogonalized polynomial
-coefficients (`ortho_coef_0..3`, the curve's orthogonal level/slope/curvature
-factors) to each day's curve shape and folds them into `df_model.xlsx` along
-with their lags.
+`pull_forward_curve_history.py` pulls the full daily history for each of the
+12 rolling monthly naphtha CIF NWE Cargo Financial contracts (Mo01, the front
+month, through Mo12) via `ek.get_timeseries`, one bulk call per contract, and
+writes them to the `curve` sheet as one row per business day and one column
+per month-forward offset (1..12). An earlier version tried to snapshot the
+`0#NAF-NWE:` chain day by day, but that chain does not support historical
+point-in-time snapshots for roughly the last several months, so it silently
+failed for recent dates; the rolling-contract RICs (Mo01 is the same RIC used
+as `MOC` elsewhere in this project) don't have that problem. `build_model_dataset.py`
+then fits QR-orthogonalized polynomial coefficients (`ortho_coef_0..3`, the
+curve's orthogonal level/slope/curvature factors) to each day's curve shape
+and folds them into `df_model.xlsx` along with their lags.
 
 Example:
 

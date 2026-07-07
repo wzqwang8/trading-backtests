@@ -170,10 +170,16 @@ def process_forward_curves(start_date, end_date):
         forwards = forwards.loc[(forwards.index >= pd.to_datetime(start_date)) &
                               (forwards.index <= pd.to_datetime(end_date))]
 
-        dates = pd.to_datetime(forwards.columns)
-        start_date = dates[0]
-        month_offsets = (dates.year - start_date.year) * 12 + (dates.month - start_date.month)
-        x = np.array(month_offsets, dtype=float)
+        # Columns are month-forward offsets (1..12) when using the rolling
+        # Mo01..Mo12 contract RICs; fall back to calendar-date columns for
+        # the older chain-snapshot file layout.
+        try:
+            x = forwards.columns.astype(float).values
+        except (TypeError, ValueError):
+            dates = pd.to_datetime(forwards.columns)
+            base = dates[0]
+            month_offsets = (dates.year - base.year) * 12 + (dates.month - base.month)
+            x = np.array(month_offsets, dtype=float)
 
         degree = 3  # Degree of polynomial
         V = np.vander(x, N=degree + 1, increasing=True)
