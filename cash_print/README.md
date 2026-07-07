@@ -16,8 +16,16 @@ Developed a Python commodities research framework for naphtha cash differential 
 
 1. Build or update `df_model.xlsx` from the raw Eikon and desk data.
 2. Run `cash_print_research.py` against the prepared model dataset.
-3. Review the generated model metrics, backtest metrics, and prediction history.
-4. Compare models against persistence and rolling-mean baselines before making any performance claim.
+3. Review the generated model metrics, feature manifest, cost-sensitivity backtest, and prediction history.
+4. Compare models against zero-change and rolling mean-reversion baselines before making any performance claim.
+
+Example:
+
+```bash
+python3 cash_print/cash_print_research.py \
+  --input cash_print/df_model.xlsx \
+  --output-dir cash_print/research_outputs_v2
+```
 
 ## Expected Input
 
@@ -31,11 +39,24 @@ The script avoids hardcoded Eikon credentials and local desk paths. Use environm
 
 ## Outputs
 
-By default the runner writes to `cash_print/research_outputs/`:
+By default the improved runner writes to `cash_print/research_outputs_v2/`:
 
-- `model_metrics.csv`: RMSE, MAE, R2, directional accuracy, and train/test sizes;
-- `backtest_metrics.csv`: total return, Sharpe, max drawdown, turnover, and win rate;
-- `prediction_history.csv`: actual, predicted, signal, position, and strategy return by date.
+- `model_metrics.csv`: next-day-change RMSE, MAE, R2, directional accuracy, and directional coverage;
+- `backtest_cost_sensitivity.csv`: total return, Sharpe, drawdown, turnover, active-day rate, and hit rate across transaction-cost assumptions;
+- `backtest_metrics.csv`: the first configured transaction-cost slice, kept for backwards-compatible quick inspection;
+- `prediction_history.csv`: actual next cash diff, predicted change, predicted next cash diff, signal, costs, and strategy return by date;
+- `feature_manifest.csv`: lag compression and train-only correlation-pruning decisions for auditability.
+
+## Current Modeling Improvements
+
+The runner now tests a more conservative setup suggested by the first research pass:
+
+- predicts `CASH_DIFF_T+1 - CASH_DIFF` directly, instead of making the model relearn today’s level;
+- keeps selected lag horizons by default (`lag_1` and `lag_5`) to reduce repetitive lag-family noise;
+- prunes highly correlated features using only the pre-test training window;
+- refits models in expanding walk-forward blocks with a configurable row gap;
+- compares against `ZeroChange` and rolling mean-reversion baselines;
+- writes transaction-cost sensitivity instead of relying on a single cost assumption.
 
 ## Quality Bar Before CV Claims
 
@@ -45,4 +66,4 @@ A result is CV-ready only if:
 - backtest performance survives transaction-cost sensitivity;
 - validation is chronological or walk-forward, with no train/test leakage;
 - signals use only information available at decision time;
-- the result table includes drawdown, Sharpe, win rate, turnover, and number of trades.
+- the result table includes drawdown, Sharpe, active-day hit rate, turnover, and cost assumptions.
