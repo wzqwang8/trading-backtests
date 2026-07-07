@@ -24,7 +24,7 @@ from cash_print_config import DEFAULT_START_DATE, configure_eikon, data_path, to
 
 configure_eikon(ek)
 
-DEFAULT_CHAIN = "0#NAF-NWE:"
+DEFAULT_CHAIN = "0#CN01F:"
 MAX_RETRIES = 3
 RETRY_SLEEP_SECONDS = 2.0
 
