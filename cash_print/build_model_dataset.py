@@ -159,13 +159,15 @@ def calculate_market_indicators(start_date, end_date):
 def process_forward_curves(start_date, end_date):
     """Process forward curves and generate orthogonal polynomial coefficients"""
     try:
-        forwards = pd.read_excel(
-            data_path('forward_curve.xlsx'),
-            sheet_name='curve'
-        ).set_index('Unnamed: 0')
+        raw = pd.read_excel(data_path('forward_curve.xlsx'), sheet_name='curve')
+        date_col = 'Date' if 'Date' in raw.columns else raw.columns[0]
+        forwards = raw.set_index(date_col)
 
-        forwards.index = pd.to_datetime(forwards.index)
-        forwards = forwards.loc[(forwards.index >= pd.to_datetime(start_date)) & 
+        forwards.index = pd.to_datetime(forwards.index, errors='coerce')
+        forwards = forwards[forwards.index.notna()]
+        # Legacy formula-based snapshots leave stale all-zero rows behind; drop them.
+        forwards = forwards.loc[(forwards.fillna(0) != 0).any(axis=1)]
+        forwards = forwards.loc[(forwards.index >= pd.to_datetime(start_date)) &
                               (forwards.index <= pd.to_datetime(end_date))]
 
         dates = pd.to_datetime(forwards.columns)

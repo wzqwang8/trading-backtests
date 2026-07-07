@@ -14,10 +14,11 @@ Developed a Python commodities research framework for naphtha cash differential 
 
 ## Clean Workflow
 
-1. Build or update `df_model.xlsx` from raw Eikon and local desk data.
-2. Run `run_cash_diff_research.py` against the prepared model dataset.
-3. Review the generated model metrics, feature manifest, cost-sensitivity backtest, and prediction history.
-4. Compare models against zero-change and rolling mean-reversion baselines before making any performance claim.
+1. Refresh `forward_curve.xlsx` from Eikon with `pull_forward_curve_history.py` (needed before the curve-shape orthogonal factors can cover the current date range).
+2. Build or update `df_model.xlsx` from raw Eikon and local desk data.
+3. Run `run_cash_diff_research.py` against the prepared model dataset.
+4. Review the generated model metrics, feature manifest, cost-sensitivity backtest, and prediction history.
+5. Compare models against zero-change and rolling mean-reversion baselines before making any performance claim.
 
 Refresh the model dataset on a machine with Refinitiv Eikon/Workspace running:
 
@@ -44,11 +45,25 @@ export EIKON_APP_KEY="your-eikon-app-key"
 Then run:
 
 ```bash
+python3 cash_print/pull_forward_curve_history.py \
+  --output cash_print/forward_curve.xlsx
+
 python3 cash_print/build_model_dataset.py \
   --output cash_print/df_model.xlsx
 ```
 
-The builder defaults to `--start-date 2022-01-07` and `--end-date` equal to today's date.
+Both scripts default to `--start-date 2022-01-07` and `--end-date` equal to today's date.
+
+`pull_forward_curve_history.py` pulls one forward-curve snapshot per business
+day from the `0#NAF-NWE:` chain and writes it to the `curve` sheet, one row
+per as-of date and one column per forward delivery month. It is incremental:
+re-running it only fetches business days missing from the existing output
+file (use `--force-refresh` to refetch everything), and it checkpoints to
+disk every `--checkpoint-every` rows so an interrupted run does not lose
+progress. `build_model_dataset.py` then fits QR-orthogonalized polynomial
+coefficients (`ortho_coef_0..3`, the curve's orthogonal level/slope/curvature
+factors) to each day's curve shape and folds them into `df_model.xlsx` along
+with their lags.
 
 Example:
 
@@ -95,7 +110,7 @@ Legacy / exploratory notebooks preserved as scripts:
 - `analyze_first_half_second_half.py`: first-half vs second-half monthly cash diff analysis.
 - `classify_month_half_cash_diff.py`: classification experiment for monthly half-shape behavior.
 - `estimate_cash_diff_volatility.py`: GARCH volatility exploration.
-- `pull_forward_curve_history.py`: Eikon forward-curve history pull prototype.
+- `pull_forward_curve_history.py`: incremental daily Eikon forward-curve history refresh for `forward_curve.xlsx`'s `curve` sheet.
 
 Known data-builder caveat: the checked-in `df_model.xlsx` includes `EW`, `BRENT`, and `GASOLINE`. The refreshed builder reconstructs `BRENT` and `GASOLINE` from Eikon instruments already used in the legacy margin calculations. `EW` is intentionally not extended yet because the available formula was for a gasoline spread, not the naphtha EW series used here.
 
