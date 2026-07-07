@@ -145,7 +145,7 @@ def calculate_market_indicators(start_date, end_date):
 
     try:
         gasoline = ek.get_timeseries(
-            'GLBOBOXYO=ARG', start_date=start_date, end_date=end_date
+            'PA00056436OF0', start_date=start_date, end_date=end_date
         )['CLOSE'].rename('GASOLINE')
         brent = ek.get_timeseries(
             'PCAAS00', start_date=start_date, end_date=end_date
@@ -159,19 +159,27 @@ def calculate_market_indicators(start_date, end_date):
 def process_forward_curves(start_date, end_date):
     """Process forward curves and generate orthogonal polynomial coefficients"""
     try:
-        forwards = pd.read_excel(
-            data_path('forward_curve.xlsx'),
-            sheet_name='curve'
-        ).set_index('Unnamed: 0')
+        raw = pd.read_excel(data_path('forward_curve.xlsx'), sheet_name='curve')
+        date_col = 'Date' if 'Date' in raw.columns else raw.columns[0]
+        forwards = raw.set_index(date_col)
 
-        forwards.index = pd.to_datetime(forwards.index)
-        forwards = forwards.loc[(forwards.index >= pd.to_datetime(start_date)) & 
+        forwards.index = pd.to_datetime(forwards.index, errors='coerce')
+        forwards = forwards[forwards.index.notna()]
+        # Legacy formula-based snapshots leave stale all-zero rows behind; drop them.
+        forwards = forwards.loc[(forwards.fillna(0) != 0).any(axis=1)]
+        forwards = forwards.loc[(forwards.index >= pd.to_datetime(start_date)) &
                               (forwards.index <= pd.to_datetime(end_date))]
 
-        dates = pd.to_datetime(forwards.columns)
-        start_date = dates[0]
-        month_offsets = (dates.year - start_date.year) * 12 + (dates.month - start_date.month)
-        x = np.array(month_offsets, dtype=float)
+        # Columns are month-forward offsets (1..12) when using the rolling
+        # Mo01..Mo12 contract RICs; fall back to calendar-date columns for
+        # the older chain-snapshot file layout.
+        try:
+            x = forwards.columns.astype(float).values
+        except (TypeError, ValueError):
+            dates = pd.to_datetime(forwards.columns)
+            base = dates[0]
+            month_offsets = (dates.year - base.year) * 12 + (dates.month - base.month)
+            x = np.array(month_offsets, dtype=float)
 
         degree = 3  # Degree of polynomial
         V = np.vander(x, N=degree + 1, increasing=True)
