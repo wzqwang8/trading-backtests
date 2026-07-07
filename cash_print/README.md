@@ -21,8 +21,29 @@ Developed a Python commodities research framework for naphtha cash differential 
 
 Refresh the model dataset on a machine with Refinitiv Eikon/Workspace running:
 
+Option A: put your key in the gitignored local config file:
+
+```bash
+cp cash_print/local_config.example.json cash_print/local_config.json
+```
+
+Then edit `cash_print/local_config.json`:
+
+```json
+{
+  "EIKON_APP_KEY": "your-eikon-app-key"
+}
+```
+
+Option B: set it as an environment variable:
+
 ```bash
 export EIKON_APP_KEY="your-eikon-app-key"
+```
+
+Then run:
+
+```bash
 python3 cash_print/build_model_dataset.py \
   --output cash_print/df_model.xlsx
 ```
@@ -51,7 +72,9 @@ The script avoids hardcoded Eikon credentials and local desk paths. Use environm
 
 Core workflow:
 
-- `cash_print_config.py`: shared paths, date defaults, and Eikon environment-variable setup.
+- `cash_print_config.py`: shared paths, date defaults, and Eikon config lookup.
+- `local_config.example.json`: safe template for local Eikon credentials.
+- `local_config.json`: your gitignored local Eikon credential file; do not commit this.
 - `build_model_dataset.py`: main dataset builder for `df_model.xlsx`; pulls Eikon data, reads local `forward_curve.xlsx`, creates lags and `CASH_DIFF_T+1`.
 - `run_cash_diff_research.py`: clean leakage-aware research runner and walk-forward backtest.
 - `df_model.xlsx`: current checked-in model dataset. As of this repo state, it runs from 2022-01-21 to 2025-07-22.
