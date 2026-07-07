@@ -14,15 +14,25 @@ Developed a Python commodities research framework for naphtha cash differential 
 
 ## Clean Workflow
 
-1. Build or update `df_model.xlsx` from the raw Eikon and desk data.
-2. Run `cash_print_research.py` against the prepared model dataset.
+1. Build or update `df_model.xlsx` from raw Eikon and local desk data.
+2. Run `run_cash_diff_research.py` against the prepared model dataset.
 3. Review the generated model metrics, feature manifest, cost-sensitivity backtest, and prediction history.
 4. Compare models against zero-change and rolling mean-reversion baselines before making any performance claim.
+
+Refresh the model dataset on a machine with Refinitiv Eikon/Workspace running:
+
+```bash
+export EIKON_APP_KEY="your-eikon-app-key"
+python3 cash_print/build_model_dataset.py \
+  --output cash_print/df_model.xlsx
+```
+
+The builder defaults to `--start-date 2022-01-07` and `--end-date` equal to today's date.
 
 Example:
 
 ```bash
-python3 cash_print/cash_print_research.py \
+python3 cash_print/run_cash_diff_research.py \
   --input cash_print/df_model.xlsx \
   --output-dir cash_print/research_outputs_v2
 ```
@@ -36,6 +46,35 @@ The research runner expects a tabular model file such as `df_model.xlsx` or `df_
 - feature columns known at prediction time.
 
 The script avoids hardcoded Eikon credentials and local desk paths. Use environment variables and local config in the data-preparation layer instead.
+
+## File Map
+
+Core workflow:
+
+- `cash_print_config.py`: shared paths, date defaults, and Eikon environment-variable setup.
+- `build_model_dataset.py`: main dataset builder for `df_model.xlsx`; pulls Eikon data, reads local `forward_curve.xlsx`, creates lags and `CASH_DIFF_T+1`.
+- `run_cash_diff_research.py`: clean leakage-aware research runner and walk-forward backtest.
+- `df_model.xlsx`: current checked-in model dataset. As of this repo state, it runs from 2022-01-21 to 2025-07-22.
+- `forward_curve.xlsx`: local forward-curve and NIS source workbook used by the builder.
+
+Research outputs:
+
+- `research_outputs/`: first-pass outputs from the earlier direct-level model.
+- `research_outputs_v2/`: current v2 outputs from the direct-change model.
+
+Legacy / exploratory notebooks preserved as scripts:
+
+- `legacy_model_comparison_workbench.py`: older multi-model workbench. Note: its historical train/test split logic should not be used for claims without review.
+- `draft_model_dataset_pipeline.py`: near-duplicate draft of the dataset/model pipeline.
+- `prototype_full_feature_pipeline.py`: older full prototype retained for reference.
+- `explore_cash_diff_curve_shape.py`: cash diff and forward-curve shape exploration.
+- `explore_cash_diff_monthly_clusters.py`: grouped/monthly cash diff clustering exploration.
+- `analyze_first_half_second_half.py`: first-half vs second-half monthly cash diff analysis.
+- `classify_month_half_cash_diff.py`: classification experiment for monthly half-shape behavior.
+- `estimate_cash_diff_volatility.py`: GARCH volatility exploration.
+- `pull_forward_curve_history.py`: Eikon forward-curve history pull prototype.
+
+Known data-builder caveat: the checked-in `df_model.xlsx` includes `EW`, `BRENT`, and `GASOLINE`. The refreshed builder reconstructs `BRENT` and `GASOLINE` from Eikon instruments already used in the legacy margin calculations. The original source ticker for `EW` is not documented in this repo, so the builder preserves existing historical `EW` values when refreshing but cannot extend `EW` until the correct source is confirmed.
 
 ## Outputs
 
