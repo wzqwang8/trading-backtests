@@ -145,7 +145,7 @@ def calculate_market_indicators(start_date, end_date):
 
     try:
         gasoline = ek.get_timeseries(
-            'GLBOBOXYO=ARG', start_date=start_date, end_date=end_date
+            'PA00056436OF0', start_date=start_date, end_date=end_date
         )['CLOSE'].rename('GASOLINE')
         brent = ek.get_timeseries(
             'PCAAS00', start_date=start_date, end_date=end_date

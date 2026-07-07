@@ -521,7 +521,11 @@ def run(args: argparse.Namespace) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True, help="Path to df_model.xlsx or CSV.")
+    parser.add_argument(
+        "--input",
+        default="cash_print/df_model.xlsx",
+        help="Path to df_model.xlsx or CSV.",
+    )
     parser.add_argument(
         "--output-dir",
         default="cash_print/research_outputs_v2",
