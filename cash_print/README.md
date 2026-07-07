@@ -74,13 +74,13 @@ Legacy / exploratory notebooks preserved as scripts:
 - `estimate_cash_diff_volatility.py`: GARCH volatility exploration.
 - `pull_forward_curve_history.py`: Eikon forward-curve history pull prototype.
 
-Known data-builder caveat: the checked-in `df_model.xlsx` includes `EW`, `BRENT`, and `GASOLINE`. The refreshed builder reconstructs `BRENT` and `GASOLINE` from Eikon instruments already used in the legacy margin calculations. The original source ticker for `EW` is not documented in this repo, so the builder preserves existing historical `EW` values when refreshing but cannot extend `EW` until the correct source is confirmed.
+Known data-builder caveat: the checked-in `df_model.xlsx` includes `EW`, `BRENT`, and `GASOLINE`. The refreshed builder reconstructs `BRENT` and `GASOLINE` from Eikon instruments already used in the legacy margin calculations. `EW` is intentionally not extended yet because the available formula was for a gasoline spread, not the naphtha EW series used here.
 
 ## Outputs
 
 By default the improved runner writes to `cash_print/research_outputs_v2/`:
 
-- `model_metrics.csv`: next-day-change RMSE, MAE, R2, directional accuracy, and directional coverage;
+- `model_metrics.csv`: next-day-change RMSE, MAE, R2, move correlation, raw directional accuracy, and threshold-aligned signal directional accuracy;
 - `backtest_cost_sensitivity.csv`: total return, Sharpe, drawdown, turnover, active-day rate, and hit rate across transaction-cost assumptions;
 - `backtest_metrics.csv`: the first configured transaction-cost slice, kept for backwards-compatible quick inspection;
 - `prediction_history.csv`: actual next cash diff, predicted change, predicted next cash diff, signal, costs, and strategy return by date;
@@ -96,6 +96,7 @@ The runner now tests a more conservative setup suggested by the first research p
 - refits models in expanding walk-forward blocks with a configurable row gap;
 - compares against `ZeroChange` and rolling mean-reversion baselines;
 - writes transaction-cost sensitivity instead of relying on a single cost assumption.
+- reports both raw nonzero prediction direction and thresholded signal direction, so model metrics line up with the backtest trigger.
 
 ## Quality Bar Before CV Claims
 

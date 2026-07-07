@@ -138,10 +138,9 @@ def calculate_market_indicators(start_date, end_date):
     """Pull broad market features used by the checked-in research dataset.
 
     ``BRENT`` and ``GASOLINE`` are reconstructed from the Eikon instruments that
-    were already used in the legacy margin calculations. ``EW`` is not
-    reconstructed here because the original source ticker is not documented in
-    the repository; if an existing df_model.xlsx has EW, main() preserves the
-    historical EW values during refresh.
+    were already used in the legacy margin calculations. ``EW`` is intentionally
+    not reconstructed here: the previously discussed formula referenced a
+    gasoline spread, not the naphtha EW series used in this project.
     """
 
     try:
@@ -572,30 +571,6 @@ def parse_args():
     return parser.parse_args()
 
 
-def preserve_existing_overlays(output_path):
-    """Preserve checked-in columns whose data source is not yet documented."""
-
-    try:
-        existing = pd.read_excel(output_path)
-    except FileNotFoundError:
-        return pd.DataFrame()
-    except Exception as e:
-        print(f"Could not read existing overlays from {output_path}: {e}")
-        return pd.DataFrame()
-
-    if "Date" not in existing.columns:
-        return pd.DataFrame()
-
-    overlay_columns = [col for col in ["EW"] if col in existing.columns]
-    if not overlay_columns:
-        return pd.DataFrame()
-
-    overlays = existing[["Date", *overlay_columns]].copy()
-    overlays["Date"] = pd.to_datetime(overlays["Date"], errors="coerce")
-    overlays = overlays.dropna(subset=["Date"]).set_index("Date")
-    return overlays
-
-
 ########################
 # 7. MAIN EXECUTION
 ########################
@@ -624,14 +599,6 @@ def main():
     cash_diff, nis_aligned, margins_data, coeffs_ortho, market_data = load_and_preprocess_data(
         args.start_date, args.end_date
     )
-
-    overlays = preserve_existing_overlays(output_path)
-    if not overlays.empty:
-        market_data = market_data.join(overlays, how="left")
-        print(
-            "Preserved existing overlay columns without documented source: "
-            + ", ".join(overlays.columns)
-        )
 
     # 2. Feature engineering
     print("\nCreating features...")

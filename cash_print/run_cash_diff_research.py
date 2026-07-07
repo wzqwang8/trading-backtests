@@ -309,18 +309,37 @@ def baseline_predictions(
 
 
 def model_metrics(
-    y_true_change: pd.Series, y_pred_change: np.ndarray, model_name: str
+    y_true_change: pd.Series,
+    y_pred_change: np.ndarray,
+    model_name: str,
+    threshold: float,
 ) -> dict[str, float | str]:
-    active = np.abs(y_pred_change) > 1e-12
-    if active.any():
-        direction_acc = float(
+    true_change = y_true_change.to_numpy()
+    raw_active = np.abs(y_pred_change) > 1e-12
+    signal = np.where(y_pred_change > threshold, 1, np.where(y_pred_change < -threshold, -1, 0))
+    signal_active = signal != 0
+
+    if raw_active.any():
+        raw_direction_acc = float(
             (
-                np.sign(y_true_change.to_numpy()[active])
-                == np.sign(y_pred_change[active])
+                np.sign(true_change[raw_active])
+                == np.sign(y_pred_change[raw_active])
             ).mean()
         )
     else:
-        direction_acc = np.nan
+        raw_direction_acc = np.nan
+
+    if signal_active.any():
+        threshold_direction_acc = float(
+            (np.sign(true_change[signal_active]) == signal[signal_active]).mean()
+        )
+    else:
+        threshold_direction_acc = np.nan
+
+    if np.std(true_change) > 0 and np.std(y_pred_change) > 0:
+        move_correlation = float(np.corrcoef(true_change, y_pred_change)[0, 1])
+    else:
+        move_correlation = np.nan
 
     return {
         "model": model_name,
@@ -329,8 +348,13 @@ def model_metrics(
         ),
         "change_mae": float(mean_absolute_error(y_true_change, y_pred_change)),
         "change_r2": float(r2_score(y_true_change, y_pred_change)),
-        "directional_accuracy_when_active": direction_acc,
-        "directional_coverage": float(active.mean()),
+        "move_correlation": move_correlation,
+        "raw_directional_accuracy_when_nonzero": raw_direction_acc,
+        "raw_directional_coverage": float(raw_active.mean()),
+        "threshold": threshold,
+        "threshold_directional_accuracy": threshold_direction_acc,
+        "threshold_signal_coverage": float(signal_active.mean()),
+        "threshold_signal_count": int(signal_active.sum()),
     }
 
 
@@ -439,7 +463,7 @@ def run(args: argparse.Namespace) -> None:
         )
 
     metrics = [
-        model_metrics(y_test_change, pred, model_name)
+        model_metrics(y_test_change, pred, model_name, args.threshold)
         for model_name, pred in predictions.items()
     ]
     metrics_df = pd.DataFrame(metrics).sort_values("change_mae")
