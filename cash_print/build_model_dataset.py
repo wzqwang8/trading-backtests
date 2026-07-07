@@ -135,22 +135,35 @@ def calculate_refinery_margins(start_date, end_date):
 
 
 def calculate_market_indicators(start_date, end_date):
-    """Pull broad market features used by the checked-in research dataset.
+    """Pull broad market features used by the research dataset.
 
-    ``BRENT`` and ``GASOLINE`` are reconstructed from the Eikon instruments that
-    were already used in the legacy margin calculations. ``EW`` is intentionally
-    not reconstructed here: the previously discussed formula referenced a
-    gasoline spread, not the naphtha EW series used in this project.
+    BRENT and GASOLINE are reconstructed from the Eikon instruments used in the
+    legacy margin calculations. EW is the naphtha East-West spread:
+    MOPJ naphtha (PAAAD00) minus NWE naphtha (PAAAL00).
     """
 
     try:
         gasoline = ek.get_timeseries(
-            'PA00056436OF0', start_date=start_date, end_date=end_date
-        )['CLOSE'].rename('GASOLINE')
+            "PA00056436OF0", start_date=start_date, end_date=end_date
+        )["CLOSE"].rename("GASOLINE")
+
         brent = ek.get_timeseries(
-            'PCAAS00', start_date=start_date, end_date=end_date
-        )['CLOSE'].rename('BRENT')
-        return pd.concat([brent, gasoline], axis=1).sort_index()
+            "PCAAS00", start_date=start_date, end_date=end_date
+        )["CLOSE"].rename("BRENT")
+
+        mopj = ek.get_timeseries(
+            "PAAAD00", start_date=start_date, end_date=end_date
+        )["CLOSE"].rename("MOPJ")
+
+        nwe = ek.get_timeseries(
+            "PAAAL00", start_date=start_date, end_date=end_date
+        )["CLOSE"].rename("NWE_NAPHTHA")
+
+        indicators = pd.concat([brent, gasoline, mopj, nwe], axis=1).sort_index()
+        indicators["EW"] = indicators["MOPJ"] - indicators["NWE_NAPHTHA"]
+
+        return indicators[["BRENT", "GASOLINE", "EW"]]
+
     except Exception as e:
         print(f"Error calculating market indicators: {e}")
         return pd.DataFrame()
