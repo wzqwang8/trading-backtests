@@ -114,7 +114,7 @@ def load_and_preprocess_data(start_date, end_date):
 def calculate_refinery_margins(start_date, end_date):
     """Calculate various refinery margins"""
     try:
-        gas = ek.get_timeseries('GLBOBOXYO=ARG', start_date=start_date, end_date=end_date)['CLOSE']
+        gas = ek.get_timeseries('PA00056436OF0', start_date=start_date, end_date=end_date)['CLOSE']
         nap = ek.get_timeseries('PAAAL00', start_date=start_date, end_date=end_date)['CLOSE']
         fo_1pct = ek.get_timeseries('PUAAM00', start_date=start_date, end_date=end_date)['CLOSE']
         dated_b = ek.get_timeseries('PCAAS00', start_date=start_date, end_date=end_date)['CLOSE']
