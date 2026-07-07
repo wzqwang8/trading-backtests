@@ -5,3 +5,9 @@ matplotlib
 openpyxl
 xgboost
 shap
+eikon
+joblib
+statsmodels
+seaborn
+arch
+optuna

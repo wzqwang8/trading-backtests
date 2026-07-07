@@ -1,23 +1,30 @@
-# Enhanced Naphtha Cash Diff Forecasting Model
-# Combines robust feature engineering, model validation, and economic significance testing
+"""Build the model-ready cash differential dataset.
 
+This is the main data-refresh script for ``df_model.xlsx``. It pulls cash print
+and market data from Eikon, combines local forward-curve/NIS inputs, creates lag
+features and the next-day target, then writes the model dataset used by
+``run_cash_diff_research.py``.
+
+Eikon Desktop/Workspace must be running locally. Set ``EIKON_APP_KEY`` in your
+environment instead of hardcoding credentials.
+"""
+
+import argparse
+import os
+import tempfile
+from pathlib import Path
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import eikon as ek
+
+os.environ.setdefault("MPLCONFIGDIR", str(Path(tempfile.gettempdir()) / "matplotlib"))
+
 from numpy.linalg import qr
-from sklearn.feature_selection import SelectFromModel
 from sklearn.model_selection import TimeSeriesSplit, RandomizedSearchCV
 from sklearn.metrics import r2_score, mean_squared_error
 from sklearn.ensemble import VotingRegressor
 from sklearn.linear_model import ElasticNet
 from sklearn.svm import SVR
-import statsmodels.api as sm
-from statsmodels.graphics.tsaplots import plot_acf
-from statsmodels.stats.diagnostic import acorr_ljungbox
 from xgboost import XGBRegressor
-import shap
 from datetime import timedelta
 import warnings
 from sklearn.model_selection import train_test_split
@@ -25,11 +32,43 @@ import joblib
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
+try:
+    import statsmodels.api as sm
+    from statsmodels.graphics.tsaplots import plot_acf
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+except ImportError:  # optional; only needed for --run-legacy-analysis diagnostics
+    sm = None
+    plot_acf = None
+    acorr_ljungbox = None
+
+try:
+    import eikon as ek
+except ImportError:  # pragma: no cover - environment dependent
+    ek = None
+
+try:
+    import seaborn as sns
+except ImportError:  # optional; only needed for --run-legacy-analysis plots
+    sns = None
+
+try:
+    import shap
+except ImportError:  # optional; only needed for --run-legacy-analysis explainability
+    shap = None
+
+from cash_print_config import (
+    DEFAULT_START_DATE,
+    configure_eikon,
+    data_path,
+    today_iso,
+)
+
 # Configuration
 warnings.filterwarnings('ignore')
 pd.set_option('display.max_columns', None)
-plt.style.use('seaborn-v0_8')  # Updated style name for modern matplotlib versions
-ek.set_app_key('1e01b72982374e88971ea95fe42801910d7207ef')
+if ek is not None:
+    configure_eikon(ek)
+plt = None
 
 ########################
 # 1. DATA LOADING & PREPROCESSING
@@ -50,7 +89,7 @@ def load_and_preprocess_data(start_date, end_date):
     print("Loading NIS data...")
     try:
         nis = pd.read_excel(
-            r'M:\24.Naphtha\Python scripts\Trading back tests\Naphtha\cash_print\forward_curve.xlsx',
+            data_path('forward_curve.xlsx'),
             sheet_name='NIS'
         )
         nis['date'] = pd.to_datetime(nis['date'])
@@ -64,12 +103,13 @@ def load_and_preprocess_data(start_date, end_date):
     # Calculate refinery margins
     print("Calculating refinery margins...")
     margins_data = calculate_refinery_margins(start_date, end_date)
+    market_data = calculate_market_indicators(start_date, end_date)
     
     # Load and process forward curves
     print("Processing forward curves...")
     forwards, coeffs_ortho = process_forward_curves(start_date, end_date)
     
-    return cash_diff, nis_aligned, margins_data, coeffs_ortho
+    return cash_diff, nis_aligned, margins_data, coeffs_ortho, market_data
 
 def calculate_refinery_margins(start_date, end_date):
     """Calculate various refinery margins"""
@@ -94,11 +134,33 @@ def calculate_refinery_margins(start_date, end_date):
         return pd.DataFrame()
 
 
+def calculate_market_indicators(start_date, end_date):
+    """Pull broad market features used by the checked-in research dataset.
+
+    ``BRENT`` and ``GASOLINE`` are reconstructed from the Eikon instruments that
+    were already used in the legacy margin calculations. ``EW`` is intentionally
+    not reconstructed here: the previously discussed formula referenced a
+    gasoline spread, not the naphtha EW series used in this project.
+    """
+
+    try:
+        gasoline = ek.get_timeseries(
+            'GLBOBOXYO=ARG', start_date=start_date, end_date=end_date
+        )['CLOSE'].rename('GASOLINE')
+        brent = ek.get_timeseries(
+            'PCAAS00', start_date=start_date, end_date=end_date
+        )['CLOSE'].rename('BRENT')
+        return pd.concat([brent, gasoline], axis=1).sort_index()
+    except Exception as e:
+        print(f"Error calculating market indicators: {e}")
+        return pd.DataFrame()
+
+
 def process_forward_curves(start_date, end_date):
     """Process forward curves and generate orthogonal polynomial coefficients"""
     try:
         forwards = pd.read_excel(
-            r'M:\24.Naphtha\Python scripts\Trading back tests\Naphtha\cash_print\forward_curve.xlsx',
+            data_path('forward_curve.xlsx'),
             sheet_name='curve'
         ).set_index('Unnamed: 0')
 
@@ -135,7 +197,15 @@ def process_forward_curves(start_date, end_date):
 # 2. FEATURE ENGINEERING
 ########################
 
-def create_features(cash_diff, nis_aligned, margins_data, coeffs_ortho, n_lags=10):
+def create_features(
+    cash_diff,
+    nis_aligned,
+    margins_data,
+    coeffs_ortho,
+    market_data=None,
+    n_lags=10,
+    output_path=None,
+):
     """Create features with lagged values and target variable"""
     
     # Target variable (next day's CASH DIFF)
@@ -155,18 +225,22 @@ def create_features(cash_diff, nis_aligned, margins_data, coeffs_ortho, n_lags=1
         for lag in range(1, n_lags + 1):
             lagged_features[f'{col}_lag_{lag}'] = features[col].shift(lag)
 
+    if market_data is None:
+        market_data = pd.DataFrame(index=cash_diff.index)
+
     # Combine all features
     df_model = pd.concat([
         features,
         cash_diff,
         cash_diff_lags,
         lagged_features,
-        cash_diff_target
+        cash_diff_target,
+        market_data,
     ], axis=1).dropna()
     print(df_model)
 
-    output_path = r'M:\24.Naphtha\Python scripts\Trading back tests\Naphtha\cash_print\df_model.xlsx'
-    df_model.to_excel(output_path)
+    output_path = output_path or data_path('df_model.xlsx')
+    df_model.to_excel(output_path, index_label='Date')
     print(f"\ndf_model saved to Excel at:\n{output_path}")
     return df_model
 
@@ -299,7 +373,11 @@ def analyze_features(X, y, model, n_components=None, apply_pca=False):
     # Correlation matrix (for first 20 features to avoid clutter)
     corr_matrix = X.iloc[:, :20].corr().abs()
     plt.figure(figsize=(12, 10))
-    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+    if sns is not None:
+        sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap='coolwarm')
+    else:
+        plt.imshow(corr_matrix, cmap='coolwarm', aspect='auto')
+        plt.colorbar(label='Correlation')
     plt.title("Feature Correlation Matrix (First 20 Features)")
     plt.tight_layout()
     plt.show()
@@ -475,20 +553,68 @@ def get_forward_predictions(model, cutoff_df, days_to_predict=5):
 
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--start-date", default=DEFAULT_START_DATE)
+    parser.add_argument("--end-date", default=today_iso())
+    parser.add_argument("--lags", type=int, default=10)
+    parser.add_argument(
+        "--output",
+        default=str(data_path("df_model.xlsx")),
+        help="Where to write the refreshed model dataset.",
+    )
+    parser.add_argument(
+        "--run-legacy-analysis",
+        action="store_true",
+        help="Also run the older in-script model diagnostics after building df_model.",
+    )
+    return parser.parse_args()
+
+
 ########################
 # 7. MAIN EXECUTION
 ########################
 
 def main():
+    args = parse_args()
+
+    if ek is None:
+        raise SystemExit(
+            "Cannot refresh df_model.xlsx because the 'eikon' Python package is "
+            "not installed in this environment. Run this script on a machine with "
+            "Refinitiv Eikon/Workspace and the eikon package installed."
+        )
+
+    if args.run_legacy_analysis:
+        global plt
+        import matplotlib.pyplot as plt
+
+        plt.style.use('seaborn-v0_8')
+
+    output_path = data_path(args.output) if not Path(args.output).is_absolute() else Path(args.output)
+
     # 1. Load and preprocess data
     print("Loading and preprocessing data...")
-    start_date = '2022-01-07'
-    end_date = '2025-07-24'
-    cash_diff, nis_aligned, margins_data, coeffs_ortho = load_and_preprocess_data(start_date, end_date)
+    print(f"Date range: {args.start_date} to {args.end_date}")
+    cash_diff, nis_aligned, margins_data, coeffs_ortho, market_data = load_and_preprocess_data(
+        args.start_date, args.end_date
+    )
 
     # 2. Feature engineering
     print("\nCreating features...")
-    df_model = create_features(cash_diff, nis_aligned, margins_data, coeffs_ortho)
+    df_model = create_features(
+        cash_diff,
+        nis_aligned,
+        margins_data,
+        coeffs_ortho,
+        market_data=market_data,
+        n_lags=args.lags,
+        output_path=output_path,
+    )
+    if not args.run_legacy_analysis:
+        print("\nDataset build complete. Use run_cash_diff_research.py for model testing.")
+        return
+
     X = df_model.drop(columns=['CASH_DIFF_T+1'])
     y = df_model['CASH_DIFF_T+1']
 
@@ -525,6 +651,8 @@ def main():
     # 8. SHAP analysis (on smaller sample for performance)
     print("\nRunning SHAP analysis (on sample)...")
     try:
+        if shap is None:
+            raise ImportError("shap is not installed")
         sample_idx = np.random.choice(X_reduced.shape[0], size=min(200, X_reduced.shape[0]), replace=False)
         explainer = shap.Explainer(xgb_model)
         shap_values = explainer(X_reduced.iloc[sample_idx])
@@ -533,7 +661,7 @@ def main():
         print(f"Error in SHAP analysis: {e}")
     
     print("\nGenerating forward predictions...")
-    cutoff_df = df_model[df_model.index <= '2025-06-03']
+    cutoff_df = df_model.iloc[:-5]
 
     # Run forward predictions
     comparison_df = pd.DataFrame({
